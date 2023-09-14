@@ -1,9 +1,9 @@
 const express = require('express')
 const mongoose = require("mongoose");
-
-
+require("dotenv").config();
 const bodyParser = require('body-parser')
-const addfloorplan= require('./routes/floorUpload.routes')
+const userRoutes = require('./routes/users.routes')
+const mapRoutes = require('./routes/maps.routes')
 const app = express()
 
 
@@ -18,15 +18,15 @@ app.use(bodyParser.json())
 
 
 // Adding a Router
-app.use('/user', addfloorplan);
+app.use('/user', userRoutes);
+app.use('/map', mapRoutes);
 
 
 mongoose
-  .connect(
-    "mongodb+srv://sadia:1234@cluster0.daqmhiu.mongodb.net/?retryWrites=true&w=majority"
-    )
+  .connect(process.env.mongo)
   .then(() => {
-    app.listen(3001);
+    console.log("Connected to DB");
+    app.listen(process.env.port);
     console.log("listening on port 3001")
   })
   .catch((err) => {

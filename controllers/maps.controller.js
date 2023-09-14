@@ -1,4 +1,4 @@
-const FloorPlanmodel = require("../models/floorUpload.model");
+const Map = require("../models/map.model");
 
 
 
