@@ -1,34 +1,43 @@
-const express = require('express')
-const mongoose = require("mongoose");
-require("dotenv").config();
+const express = require('express');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+dotenv.config();
+const app = express();
+const port = process.env.port || 3001;
 const bodyParser = require('body-parser')
-const userRoutes = require('./routes/users.routes')
+
+const userRoute = require('./routes/users.routes')
 const mapRoutes = require('./routes/maps.routes')
-const app = express()
 
-
-app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    next();
-  });
-
+app.use(express.json());
 app.use(bodyParser.json())
-
-
-// Adding a Router
-app.use('/user', userRoutes);
+app.use(express.urlencoded({extended: true}));
+app.use('/user',userRoute);
 app.use('/map', mapRoutes);
 
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
+});
 
-mongoose
-  .connect(process.env.mongo)
+mongoose.connect(process.env.mongo, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    dbName: 'Invision360',
+  })
   .then(() => {
-    console.log("Connected to DB");
-    app.listen(process.env.port);
-    console.log("listening on port 3001")
+    console.log('Connected to MongoDB');
+
+    app.listen(port, () => {
+        console.log(`Server is running on port ${port}`);
+      });
   })
   .catch((err) => {
-    console.log(err);
+    console.error('Error connecting to MongoDB:', err);
   });
+
+app.get('/', (req, res) => {
+    res.send(`Server is running on NodeJS:${port}`);
+});
