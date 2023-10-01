@@ -5,15 +5,21 @@ dotenv.config();
 const app = express();
 const port = process.env.port || 3001;
 const bodyParser = require('body-parser')
+const cors = require('cors');
+app.use(cors( { origin: '*' , } ));
 
 const userRoute = require('./routes/users.routes')
 const mapRoutes = require('./routes/maps.routes')
+const modelRoutes = require('./routes/models.routes')
 
+app.set("view engine", "ejs");
 app.use(express.json());
 app.use(bodyParser.json())
 app.use(express.urlencoded({extended: true}));
 app.use('/user',userRoute);
 app.use('/map', mapRoutes);
+app.use('/model',modelRoutes);
+app.use('/uploads', express.static('uploads'));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
