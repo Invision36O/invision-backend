@@ -1,20 +1,15 @@
-const Map = require("../models/map.model");
+const { default: mongoose } = require('mongoose');
+const Map = require('../models/map.model');
 
+exports.uploadImage = async (req,res) => {
+const imagename=req.file.filename;
+console.log(imagename)
 
-
-exports.uploadMap = async(req,res)=>{
-    
-    const map = req.body.map;
-
-    let newMap = new Map({
-        map
-    })
-
-    newMap.save().then(result=>{
-        console.log('Posted');
-        res.status(200).json("done added"+result)
-    })
-    .catch(err=>{
-        console.log(err);
-    })
+try{
+  await Map.create({image:imagename});
+  res.json({imagename:imagename});
+}
+catch(error){
+  res.json({status:error});
+}
 }

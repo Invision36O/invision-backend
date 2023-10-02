@@ -1,9 +1,21 @@
-const express = require("express");
-const Router = express.Router();
+const express = require('express');
+const router = express.Router();
+const multer = require('multer');
+const path = require("path");
+const imageController = require('../controllers/maps.controller');
+const cors = require('cors');
+router.use(cors( { origin: '*' , } ));
 
-const controller = require("../controllers/maps.controller");
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public');
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage: storage });
 
-//Router.get("/getplan",FPUploadController.getfloorPlans)
-Router.post("/uploadmap", controller.uploadMap)
+router.post('/uploadmap', upload.single('image'), imageController.uploadImage);
 
-module.exports = Router;
+module.exports = router;
