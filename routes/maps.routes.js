@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require("path");
 const imageController = require('../controllers/maps.controller');
 const cors = require('cors');
-router.use(cors( { origin: '*' , } ));
+router.use(cors({ origin: '*' }));
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -14,6 +14,7 @@ const storage = multer.diskStorage({
     cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
   },
 });
+
 const upload = multer({ storage: storage });
 
 router.post('/uploadmap', upload.single('image'), imageController.uploadImage);

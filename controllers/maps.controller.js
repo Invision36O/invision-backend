@@ -1,15 +1,30 @@
 const { default: mongoose } = require('mongoose');
 const Map = require('../models/map.model');
+const fs = require('fs');
+const path = require('path');
+const spawn = require('child_process').spawn;
 
-exports.uploadImage = async (req,res) => {
-const imagename=req.file.filename;
-console.log(imagename)
+exports.uploadImage = async (req, res) => {
+  const imagename = req.file.filename;
 
-try{
-  await Map.create({image:imagename});
-  res.json({imagename:imagename});
-}
-catch(error){
-  res.json({status:error});
-}
-}
+  try {
+    // Child process to run the Python script with imagename as an argument
+    const pythonProcess = spawn('python', ['../scripts/image_processing.py', imagename], {
+      cwd: __dirname, 
+    });
+    pythonProcess.on('exit', (code) => {
+      if (code === 0) {
+        const roomDataPath = path.join(__dirname, '..', 'public', `${imagename}_room_data.json`);
+        let roomData = [];
+        if (fs.existsSync(roomDataPath)) {
+            roomData = JSON.parse(fs.readFileSync(roomDataPath));
+        } 
+          res.json({ imagename: 'processed_' + imagename, roomData });
+      } else {
+          res.status(500).json({ error: 'Image processing failed' });
+      }
+  });
+}catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
