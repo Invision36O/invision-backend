@@ -8,7 +8,7 @@ exports.uploadImage = async (req, res) => {
   const imagename = req.file.filename;
 
   try {
-    // Child process to run the Python script with imagename as an argument
+
     const pythonProcess = spawn('python', ['../scripts/image_processing.py', imagename], {
       cwd: __dirname, 
     });
