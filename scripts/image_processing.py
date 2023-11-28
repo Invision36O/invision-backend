@@ -5,36 +5,30 @@ import logging
 import numpy as np
 import json
 import re
-
-
-logging.basicConfig(filename='image_processing5.log', level=logging.DEBUG)
-
 from pytesseract import pytesseract
 
 # Configure the path to the Tesseract executable
 pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
+logging.basicConfig(filename='image_processing5.log', level=logging.DEBUG)
+
 def enhance_image(image):
     enhanced = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-    logging.info(f"Enhancing image")
+    logging.info("Enhancing image")
     return enhanced
 
 def remove_multiple_dimensions(room_data):
-    return {room: dimension for room, dimension in room_data.items() if len(re.findall(r'\d+x\d+', dimension)) <= 1}
+    return {room: data for room, data in room_data.items() if len(re.findall(r'\d+x\d+', data["dimensions"])) <= 1}
 
 def image_processing(image, input_image_filename):
-
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     enhanced = enhance_image(gray)
-
   
     contours, _ = cv2.findContours(enhanced, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(image, contours, -1, (0, 255, 0), 1)
-  
     bounding_boxes = [cv2.boundingRect(c) for c in contours]
     contours, bounding_boxes = zip(*sorted(zip(contours, bounding_boxes),
                                             key=lambda b: b[1][1], reverse=False))
-    cv2.drawContours(image, contours, -1, (0, 255, 0), 1)
 
     room_data = {}
 
@@ -44,23 +38,26 @@ def image_processing(image, input_image_filename):
             continue
         
         cropped_image = gray[y:y+h, x:x+w]
-        
         text = pytesseract.image_to_string(cropped_image, config='--psm 6 --oem 3').strip().split('\n')
     
         if len(re.findall(r'x', ' '.join(text))) == 2:
-       
             matches = re.findall(r"([A-Za-z\s]+)\s(\d+x\d+)", ' '.join(text))
             for match in matches:
                 room_name, dimensions = match
                 if room_name and dimensions:
-                    room_data[room_name.strip()] = dimensions
+                    room_data[room_name.strip()] = {
+                        "dimensions": dimensions,
+                        "position": {"x": x, "y": y}
+                    }
         else:
             room_name = text[0] if text else None
             dimensions = text[1] if len(text) > 1 and 'x' in text[1] else None
         
             if room_name and len(room_name) > 2 and not any(char.isdigit() for char in room_name):
-                room_data[room_name] = dimensions
-    
+                room_data[room_name] = {
+                    "dimensions": dimensions,
+                    "position": {"x": x, "y": y}
+                }
 
     room_data = remove_multiple_dimensions(room_data)
     json_path = f"{input_image_filename}_room_data.json"
@@ -69,7 +66,6 @@ def image_processing(image, input_image_filename):
         json.dump({"rooms": room_data}, json_file)
 
     return image
-
 
 try:
     if len(sys.argv) != 2:
@@ -83,20 +79,14 @@ try:
     if not os.path.isfile(input_image_path):
         raise FileNotFoundError(f"Image not found: {input_image_path}")
 
-
     input_image = cv2.imread(input_image_path)
-    logging.info(f"Reading image")
-    # Process the image
+    logging.info("Reading image")
     processed_image = image_processing(input_image, input_image_filename)
-    
 
-    # Save the processed image
     file, ext = os.path.splitext(input_image_filename)
     output_filename = "processed_" + file + ext
     output_path = os.path.join('C://Users/hp/Desktop/Invision360/Invision360/invision-backend/public', output_filename)
     cv2.imwrite(output_path, processed_image)
-    logging.info(f"Saving image")
+    logging.info("Saving image")
 except Exception as e:
     logging.error(f"Error during image processing: {str(e)}")
-
-
