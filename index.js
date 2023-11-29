@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const path = require('path');
 dotenv.config();
 const app = express();
 const port = process.env.port || 3001;
@@ -47,4 +48,12 @@ mongoose.connect(process.env.mongo, {
 
 app.get('/', (req, res) => {
     res.send(`Server is running on NodeJS:${port}`);
+});
+
+// Serve room data JSON file
+app.get('/getData', (req, res) => {
+  const jsonFilePath = path.join(__dirname, './controllers/image-1701270209442.jpg_room_data.json');
+  console.log(jsonFilePath);
+  res.sendFile(jsonFilePath);
+  
 });
