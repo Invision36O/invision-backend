@@ -52,8 +52,7 @@ app.get('/', (req, res) => {
 
 // Serve room data JSON file
 app.get('/getData', (req, res) => {
-  const jsonFilePath = path.join(__dirname, './controllers/image-1701270209442.jpg_room_data.json');
-  console.log(jsonFilePath);
+  const jsonFilePath = path.join(__dirname, './controllers/image-1701285063508.jpg_room_data.json');
   res.sendFile(jsonFilePath);
   
 });

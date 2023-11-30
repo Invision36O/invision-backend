@@ -1,1 +1,11 @@
-{"rooms": {"Terrace": {"dimensions": "6x7", "position": {"x": 723, "y": 32}}, "TV Lounge": {"dimensions": "14x17", "position": {"x": 312, "y": 32}}, "living": {"dimensions": "5x9", "position": {"x": 66, "y": 32}}, "Laundry": {"dimensions": "6x4", "position": {"x": 887, "y": 319}}, "Stairs": {"dimensions": "2x3", "position": {"x": 636, "y": 321}}, "Bathroom": {"dimensions": "4x5", "position": {"x": 373, "y": 382}}, "Bedroom": {"dimensions": "8x9", "position": {"x": 66, "y": 382}}}}
+{
+ "rooms": {
+    "Terrace": {"dimensions": "16x17", "position": {"x": 23, "y": 2}},
+    "TV Lounge": {"dimensions": "24x27", "position": {"x": 312, "y": 2}},
+    "living": {"dimensions": "15x19", "position": {"x": 66, "y": 2}},
+    "Laundry": {"dimensions": "16x14", "position": {"x": 27, "y": 3}},
+    "Stairs": {"dimensions": "12x13", "position": {"x": 37, "y": 3}},
+    "Bathroom": {"dimensions": "14x15", "position": {"x": 73, "y": 3.5}},
+    "Bedroom": {"dimensions": "18x19", "position": {"x": 66, "y": 3.5}}
+ }
+}
