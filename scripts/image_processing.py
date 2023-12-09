@@ -60,7 +60,9 @@ def image_processing(image, input_image_filename):
                 }
 
     room_data = remove_multiple_dimensions(room_data)
-    json_path = f"{input_image_filename}_room_data.json"
+    # json_path = f"{input_image_filename}_room_data.json"
+    json_path = os.path.abspath(os.path.join(__file__, '..', '..', 'public', 'spaceData', f"{input_image_filename}_room_data.json"))
+
     
     with open(json_path, "w") as json_file:
         json.dump({"rooms": room_data}, json_file)
@@ -74,7 +76,7 @@ try:
     input_image_filename = sys.argv[1]
     logging.info(f"Processing image: {input_image_filename}")
 
-    input_image_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public', input_image_filename)
+    input_image_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//uploadedImages', input_image_filename)
 
     if not os.path.isfile(input_image_path):
         raise FileNotFoundError(f"Image not found: {input_image_path}")
@@ -85,7 +87,7 @@ try:
 
     file, ext = os.path.splitext(input_image_filename)
     output_filename = "processed_" + file + ext
-    output_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public', output_filename)
+    output_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public/processedImages', output_filename)
     cv2.imwrite(output_path, processed_image)
     logging.info("Saving image")
 except Exception as e:

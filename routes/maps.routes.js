@@ -8,7 +8,7 @@ router.use(cors({ origin: '*' }));
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'public');
+    cb(null, 'public/uploadedImages');
   },
   filename: function (req, file, cb) {
     cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));

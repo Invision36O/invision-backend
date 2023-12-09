@@ -1,0 +1,33 @@
+{
+    "rooms": {
+      "Terrace": {
+        "dimensions": { "width": 3, "depth": 5, "height": 1.2 },
+        "position": { "x": 0, "z": 0 }
+      },
+      "Living": {
+        "dimensions": { "width": 3, "depth": 2, "height": 1.2},
+        "position": { "x": 0, "z": 5 }
+      },
+      "Lobby": {
+        "dimensions": { "width": 3, "depth": 3, "height": 1.2 },
+        "position": { "x": 0, "z": 7 }
+      },
+      "Hallway": {
+        "dimensions": { "width": 2, "depth": 10, "height": 1.2 },
+        "position": { "x": 3, "z": 0 }
+      },
+      "Lounge": {
+        "dimensions": { "width": 3, "depth": 6, "height": 1.2 },
+        "position": { "x": 5, "z": 0 }
+      },
+      "Bedroom1": {
+        "dimensions": { "width": 3, "depth": 3, "height": 1.2 },
+        "position": { "x": 5, "z": 6 }
+      },
+      "Bedroom2": {
+        "dimensions": { "width": 3, "depth": 1, "height": 1.2 },
+        "position": { "x": 5, "z": 9 }
+      }
+     
+    }
+  }

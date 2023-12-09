@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const path = require('path');
 dotenv.config();
 const app = express();
 const port = process.env.port || 3001;
@@ -9,17 +8,19 @@ const bodyParser = require('body-parser')
 const cors = require('cors');
 app.use(cors( { origin: '*' , } ));
 
-// const userRoute = require('./routes/users.routes')
+const userRoute = require('./routes/users.routes')
 const mapRoutes = require('./routes/maps.routes')
 const modelRoutes = require('./routes/models.routes')
+const spaceRoutes = require('./routes/space.routes')
 
 app.set("view engine", "ejs");
 app.use(express.json());
 app.use(bodyParser.json())
 app.use(express.urlencoded({extended: true}));
-// app.use('/user',userRoute);
+app.use('/user',userRoute);
 app.use('/map', mapRoutes);
 app.use('/model',modelRoutes);
+app.use('/space', spaceRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/public',express.static('public'))
 
@@ -51,8 +52,8 @@ app.get('/', (req, res) => {
 });
 
 // Serve room data JSON file
-app.get('/getData', (req, res) => {
-  const jsonFilePath = path.join(__dirname, './controllers/image-1701285063508.jpg_room_data.json');
-  res.sendFile(jsonFilePath);
+// app.get('/getData', (req, res) => {
+//   const jsonFilePath = path.join(__dirname, './controllers/image-1701285063508.jpg_room_data.json');
+//   res.sendFile(jsonFilePath);
   
-});
+// });
