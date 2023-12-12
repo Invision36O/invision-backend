@@ -7,7 +7,6 @@ import json
 import re
 from pytesseract import pytesseract
 
-# Configure the path to the Tesseract executable
 pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 logging.basicConfig(filename='image_processing5.log', level=logging.DEBUG)
@@ -18,51 +17,43 @@ def enhance_image(image):
     return enhanced
 
 def remove_multiple_dimensions(room_data):
-    return {room: data for room, data in room_data.items() if len(re.findall(r'\d+x\d+', data["dimensions"])) <= 1}
+    return {room: {"dimensions": {
+                    "width": int(re.sub(r'\D', '', data["dimensions"][0])),
+                    "depth": int(re.sub(r'\D', '', data["dimensions"][1])),
+                    "height": 1.2
+                },
+                "position": data["position"]
+            } for room, data in room_data.items()}
 
 def image_processing(image, input_image_filename):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     enhanced = enhance_image(gray)
   
     contours, _ = cv2.findContours(enhanced, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    cv2.drawContours(image, contours, -1, (0, 255, 0), 1)
-    bounding_boxes = [cv2.boundingRect(c) for c in contours]
-    contours, bounding_boxes = zip(*sorted(zip(contours, bounding_boxes),
+    contours, bounding_boxes = zip(*sorted(zip(contours, [cv2.boundingRect(c) for c in contours]),
                                             key=lambda b: b[1][1], reverse=False))
 
     room_data = {}
 
-    for contour in contours:
-        x, y, w, h = cv2.boundingRect(contour)
+    for contour, (x, y, w, h) in zip(contours, bounding_boxes):
         if w * h < 100:
             continue
         
         cropped_image = gray[y:y+h, x:x+w]
         text = pytesseract.image_to_string(cropped_image, config='--psm 6 --oem 3').strip().split('\n')
-    
-        if len(re.findall(r'x', ' '.join(text))) == 2:
-            matches = re.findall(r"([A-Za-z\s]+)\s(\d+x\d+)", ' '.join(text))
-            for match in matches:
-                room_name, dimensions = match
-                if room_name and dimensions:
-                    room_data[room_name.strip()] = {
-                        "dimensions": dimensions,
-                        "position": {"x": x, "y": y}
-                    }
-        else:
-            room_name = text[0] if text else None
-            dimensions = text[1] if len(text) > 1 and 'x' in text[1] else None
+
+        room_name = text[0] if text else None
+        dimensions = text[1] if len(text) > 1 and 'x' in text[1] else None
         
-            if room_name and len(room_name) > 2 and not any(char.isdigit() for char in room_name):
-                room_data[room_name] = {
-                    "dimensions": dimensions,
-                    "position": {"x": x, "y": y}
-                }
+        if room_name and len(room_name) > 2 and not any(char.isdigit() for char in room_name):
+            room_data[room_name.strip()] = {
+                "dimensions": [value for value in re.split(r'\D', dimensions) if value],  # Split by non-digit characters
+                "position": {"x": x, "y": y}
+            }
 
     room_data = remove_multiple_dimensions(room_data)
-    # json_path = f"{input_image_filename}_room_data.json"
-    json_path = os.path.abspath(os.path.join(__file__, '..', '..', 'public', 'spaceData', f"{input_image_filename}_room_data.json"))
 
+    json_path = os.path.abspath(os.path.join(__file__, '..', '..', 'public', 'spaceData', f"{input_image_filename}_room_data.json"))
     
     with open(json_path, "w") as json_file:
         json.dump({"rooms": room_data}, json_file)
@@ -87,7 +78,7 @@ try:
 
     file, ext = os.path.splitext(input_image_filename)
     output_filename = "processed_" + file + ext
-    output_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public/processedImages', output_filename)
+    output_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//processedImages', output_filename)
     cv2.imwrite(output_path, processed_image)
     logging.info("Saving image")
 except Exception as e:
