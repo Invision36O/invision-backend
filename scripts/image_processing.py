@@ -2,84 +2,121 @@ import cv2
 import sys
 import os
 import logging
-import numpy as np
 import json
 import re
 from pytesseract import pytesseract
 
+# Set up Tesseract command path and logging
 pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+logging.basicConfig(filename='image_processing.log', level=logging.DEBUG)
 
-logging.basicConfig(filename='image_processing5.log', level=logging.DEBUG)
+# Initialize variables for room positioning
+current_x, current_z = 0, 0
 
 def enhance_image(image):
-    enhanced = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-    logging.info("Enhancing image")
-    return enhanced
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    _, thresh = cv2.threshold(blur, 200, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    return thresh
 
-def remove_multiple_dimensions(room_data):
-    return {room: {"dimensions": {
-                    "width": int(re.sub(r'\D', '', data["dimensions"][0])),
-                    "depth": int(re.sub(r'\D', '', data["dimensions"][1])),
-                    "height": 1.2
-                },
-                "position": data["position"]
-            } for room, data in room_data.items()}
+def sort_contours(contours):
+    bounding_boxes = [cv2.boundingRect(c) for c in contours]
+    return sorted(zip(contours, bounding_boxes), key=lambda b: (b[1][1], b[1][0]))
+
+def parse_dimensions(dimensions_str):
+    width, depth = map(int, dimensions_str.lower().replace('x', ' ').split())
+    return {"width": width, "depth": depth, "height": 1.2}
+
+def calculate_relative_position(w, h):
+    global current_x, current_z
+
+    # If it's the first room, set its position to (0, 0)
+    if current_x == 0 and current_z == 0:
+        position = {"x": 0, "z": 0}
+    else:
+        # If it's to the right of another room, set x position accordingly
+        if current_x != 0:
+            position = {"x": current_x + w, "z": current_z}
+        # If it's below another room, set z position accordingly
+        else:
+            position = {"x": current_x, "z": current_z + h}
+
+    # Update current position for the next room
+    current_x, current_z = position["x"], position["z"]
+
+    return position
+
+def update_position_for_new_row(depth):
+    global current_x, current_z
+    current_x = 0  # Reset x at the start of a new row
+    current_z += depth  # Update z to the end of the last row
 
 def image_processing(image, input_image_filename):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    enhanced = enhance_image(gray)
-  
+    global current_x, current_z
+    current_x, current_z = 0, 0  # Reset for each new image
+
+    enhanced = enhance_image(image)
     contours, _ = cv2.findContours(enhanced, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    contours, bounding_boxes = zip(*sorted(zip(contours, [cv2.boundingRect(c) for c in contours]),
-                                            key=lambda b: b[1][1], reverse=False))
+    cv2.drawContours(image, contours, -1, (0, 255, 0), 3)
+    sorted_contours = sort_contours(contours)
 
     room_data = {}
 
-    for contour, (x, y, w, h) in zip(contours, bounding_boxes):
-        if w * h < 100:
+    for contour, bounding in sorted_contours:
+        x, y, w, h = bounding
+        if w * h < 100:  # Skip small contours
             continue
         
-        cropped_image = gray[y:y+h, x:x+w]
-        text = pytesseract.image_to_string(cropped_image, config='--psm 6 --oem 3').strip().split('\n')
-
-        room_name = text[0] if text else None
-        dimensions = text[1] if len(text) > 1 and 'x' in text[1] else None
+        cropped_image = enhanced[y:y+h, x:x+w]
+        text = pytesseract.image_to_string(cropped_image, config='--psm 6').strip()
+        logging.info(f"Detected text: {text}")
         
-        if room_name and len(room_name) > 2 and not any(char.isdigit() for char in room_name):
-            room_data[room_name.strip()] = {
-                "dimensions": [value for value in re.split(r'\D', dimensions) if value],  # Split by non-digit characters
-                "position": {"x": x, "y": y}
+        match = re.search(r'([A-Za-z\s]+)\s+(\d+\s*x\s*\d+)', text)
+        if match:
+            room_name, dimensions_str = match.groups()
+            room_name = room_name.strip()
+            logging.info(f"Room detected: {room_name}")
+
+            parsed_dimensions = parse_dimensions(dimensions_str)
+            position = calculate_relative_position(parsed_dimensions["width"], parsed_dimensions["depth"])
+
+            room_data[room_name] = {
+                "dimensions": parsed_dimensions,
+                "position": position
             }
 
-    room_data = remove_multiple_dimensions(room_data)
+    # Sort the rooms based on their positions
+    sorted_rooms = sorted(room_data.items(), key=lambda x: (x[1]["position"]["z"], x[1]["position"]["x"]))
 
-    json_path = os.path.abspath(os.path.join(__file__, '..', '..', 'public', 'spaceData', f"{input_image_filename}_room_data.json"))
-    
+    # Create a new ordered dictionary with the sorted rooms
+    ordered_room_data = dict(sorted_rooms)
+
+    json_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//spaceData', f"{os.path.splitext(input_image_filename)[0]}_room_data.json")
+
     with open(json_path, "w") as json_file:
-        json.dump({"rooms": room_data}, json_file)
+        json.dump({"rooms": ordered_room_data}, json_file, indent=4)
 
     return image
 
-try:
-    if len(sys.argv) != 2:
-        raise ValueError("Usage: python image_processing.py <input_image_filename>")
+# Main execution
+if __name__ == "__main__":
+    try:
+        if len(sys.argv) != 2:
+            raise ValueError("Usage: python image_processing.py <input_image_filename>")
+        input_image_filename = sys.argv[1]
 
-    input_image_filename = sys.argv[1]
-    logging.info(f"Processing image: {input_image_filename}")
+        input_image_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//uploadedImages', input_image_filename)
 
-    input_image_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//uploadedImages', input_image_filename)
+        if not os.path.isfile(input_image_path):
+            raise FileNotFoundError(f"Image not found: {input_image_path}")
+        image = cv2.imread(input_image_path)
+        processed_image = image_processing(image, input_image_filename)
+        output_filename = f"processed_{input_image_filename}"
 
-    if not os.path.isfile(input_image_path):
-        raise FileNotFoundError(f"Image not found: {input_image_path}")
+        output_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//processedImages', output_filename)
 
-    input_image = cv2.imread(input_image_path)
-    logging.info("Reading image")
-    processed_image = image_processing(input_image, input_image_filename)
-
-    file, ext = os.path.splitext(input_image_filename)
-    output_filename = "processed_" + file + ext
-    output_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//processedImages', output_filename)
-    cv2.imwrite(output_path, processed_image)
-    logging.info("Saving image")
-except Exception as e:
-    logging.error(f"Error during image processing: {str(e)}")
+        cv2.imwrite(output_path, processed_image)
+        logging.info(f"Processed image saved at {output_path}")
+    except Exception as e:
+        logging.exception("An error occurred while processing the image.")
+        sys.exit(str(e))
