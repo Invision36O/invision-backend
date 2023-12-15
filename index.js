@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 dotenv.config();
 const app = express();
+const fs = require('fs');
+const path = require('path');
 const port = process.env.port || 3001;
 const bodyParser = require('body-parser')
 const cors = require('cors');
@@ -51,9 +53,8 @@ app.get('/', (req, res) => {
     res.send(`Server is running on NodeJS:${port}`);
 });
 
-// Serve room data JSON file
-// app.get('/getData', (req, res) => {
-//   const jsonFilePath = path.join(__dirname, './controllers/image-1701285063508.jpg_room_data.json');
-//   res.sendFile(jsonFilePath);
+app.get('/getData', (req, res) => {
+  const jsonFilePath = path.join(__dirname, './public/spaceData/image.json');
+  res.sendFile(jsonFilePath);
   
-// });
+});
