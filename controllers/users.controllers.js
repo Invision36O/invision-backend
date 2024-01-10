@@ -43,32 +43,31 @@ exports.login = (req, res)=>{
         }
     })
 }
-
-exports.getUser = async (req,res) =>{
-
+exports.getUser = async (req, res) => {
     let decodedID;
     let token = req.headers['token'];
-    jwt.verify(token, process.env.jwt_key, (err, decoded)=>{
-        if(!err){
-            req.decoded = decoded;
-            decodedID = decoded.id;
-        }else{
-            res.status(500).send({Message:"Not Authorized"})
-        }
-    })
-
-    try {
-  
-      const user = await User.findById(decodedID);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+    
+    jwt.verify(token, process.env.jwt_key, async (err, decoded) => {
+      if (err) {
+        return res.status(500).send({ message: "Not Authorized" });
       }
-      res.json(user);
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      res.status(401).json({ message: 'Unauthorized' });
-    }
-}
+  
+      req.decoded = decoded;
+      decodedID = decoded.id;
+  
+      try {
+        const user = await User.findById(decodedID);
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user);
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        res.status(401).json({ message: 'Unauthorized' });
+      }
+    });
+  };
+  
 
 exports.updateUser = async (req, res) => {
     const { _id } = req.params;
