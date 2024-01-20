@@ -25,6 +25,7 @@ app.use('/model',modelRoutes);
 app.use('/space', spaceRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/public',express.static('public'))
+app.use('/uploadedImages', express.static(path.join('public', 'uploadedImages')));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");

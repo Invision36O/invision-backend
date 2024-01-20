@@ -37,17 +37,9 @@ exports.uploadModel = (req, res) => {
 
       const contentType = getContentType(fileExtension);
 
-      // const obj = {
-      //   mod: {
-      //     data: fs.readFileSync(file.path),
-      //     contentType: contentType,
-      //   },
-      // };
-
       const newModel = new Model({
         filename: filename,
         destinationPath: subfolderPath,
-        // model: obj.mod,
       });
 
       newModel

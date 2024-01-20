@@ -17,6 +17,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.post('/uploadmap', upload.single('image'), imageController.uploadImage);
+router.post('/digitizemap', upload.single('image'), imageController.uploadImage);
+router.post('/digitizeimage', imageController.digitizeImage);
+router.post('/uploadmap', upload.single('image'), imageController.uploadMap);
+router.get('/getMaps', imageController.getMaps);
 
 module.exports = router;

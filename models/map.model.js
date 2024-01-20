@@ -1,11 +1,10 @@
 const mongoose = require('mongoose');
 
 const mapSchema = new mongoose.Schema({
-  image:String
+  filename: String,
+  destinationPath: String,
+  name: String,
 },
-{
-collection:"Image"
-}
 );
 
 const Map = mongoose.model('Map', mapSchema);

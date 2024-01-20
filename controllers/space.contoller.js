@@ -12,9 +12,9 @@ exports.spaceData = (req , res) => {
     })
 
     space.save().then((space)=>{
-        res.status(200).json({"Message":"User Created" , space:space})
+        res.status(200).json({"Message":"Space Saved" , space:space})
     }).catch(err=>{
-        res.status(500).json({"Message":"User Not Created" , err:err})
+        res.status(500).json({"Message":"Error Saving Space in DB!" , err:err})
     })
 }
 
