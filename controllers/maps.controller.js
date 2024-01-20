@@ -14,12 +14,12 @@ exports.uploadImage = async (req, res) => {
     });
     pythonProcess.on('exit', (code) => {
       if (code === 0) {
-        const roomDataPath = path.join(__dirname, '..', 'public', 'spaceData', `${imagename}_room_data.json`);
+        const roomDataPath = path.join(__dirname, '..', 'public', 'spaceData', `${imagename}.json`);
         let roomData = [];
         if (fs.existsSync(roomDataPath)) {
             roomData = JSON.parse(fs.readFileSync(roomDataPath));
         } 
-          res.json({ imagename: 'processed_' + imagename, roomData });
+          res.json({ imagename: imagename, roomData });
       } else {
           res.status(500).json({ error: 'Image processing failed' });
       }

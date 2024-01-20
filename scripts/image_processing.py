@@ -91,7 +91,7 @@ def image_processing(image, input_image_filename):
     # Create a new ordered dictionary with the sorted rooms
     ordered_room_data = dict(sorted_rooms)
 
-    json_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//spaceData', f"{os.path.splitext(input_image_filename)[0]}_room_data.json")
+    json_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//spaceData', f"{os.path.splitext(input_image_filename)[0]}.json")
 
     with open(json_path, "w") as json_file:
         json.dump({"rooms": ordered_room_data}, json_file, indent=4)
@@ -111,7 +111,7 @@ if __name__ == "__main__":
             raise FileNotFoundError(f"Image not found: {input_image_path}")
         image = cv2.imread(input_image_path)
         processed_image = image_processing(image, input_image_filename)
-        output_filename = f"processed_{input_image_filename}"
+        output_filename = f"{input_image_filename}"
 
         output_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//processedImages', output_filename)
 
