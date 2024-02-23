@@ -26,7 +26,7 @@ app.use('/space', spaceRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/public',express.static('public'))
 app.use('/uploadedImages', express.static(path.join('public', 'uploadedImages')));
-
+app.use('/processedImages', express.static(path.join('public', 'processedImages')));
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE");
