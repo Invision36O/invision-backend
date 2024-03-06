@@ -37,9 +37,11 @@ exports.uploadModel = (req, res) => {
 
       const contentType = getContentType(fileExtension);
 
+      const destinationPath = subfolderPath + "/" + filename;
+
       const newModel = new Model({
         filename: filename,
-        destinationPath: subfolderPath,
+        destinationPath: destinationPath,
       });
 
       newModel
@@ -59,13 +61,12 @@ exports.uploadModel = (req, res) => {
 
 
 exports.uploadFolder = async (req, res) => {
-
   const tempPath = req.file.path;
-
   const subfolderName = Date.now().toString();
   const subfolderPath = path.resolve('uploads', subfolderName);
   await extract(tempPath, { dir: subfolderPath });
   fs.unlinkSync(tempPath);
+
   function findGltfGlbFiles(folderPath, fileList) {
     const files = fs.readdirSync(folderPath);
 
@@ -74,9 +75,14 @@ exports.uploadFolder = async (req, res) => {
       const stat = fs.statSync(filePath);
       
       if (stat.isFile() && (path.extname(file) === '.gltf' || path.extname(file) === '.glb')) {
+        // Correctly normalize the path here before using it
+        const destinationPath = path.join(subfolderName, file).replace(/\\/g, '/');
+
+        console.log(`Normalized path: ${destinationPath}`); // Corrected variable name for logging
+        
         const newModel = new Model({
           filename: file,
-          destinationPath: subfolderName,
+          destinationPath: "uploads/"+destinationPath,
         });
       
         newModel
@@ -87,7 +93,7 @@ exports.uploadFolder = async (req, res) => {
           .catch((err) => {
             console.error(`Error saving in DB:`, err);
           });
-        fileList.push(path.join(subfolderName, file).replace(/\\/g, '/'));
+        fileList.push(destinationPath);
       } else if (stat.isDirectory()) {
         findGltfGlbFiles(filePath, fileList);
       }
@@ -100,3 +106,12 @@ exports.uploadFolder = async (req, res) => {
   return res.json({ files: gltfGlbFiles });
 };
 
+exports.getModels = async (req, res) => {
+  try {
+    const models = await Model.find({},);
+    res.status(200).json(models);
+  } catch (error) {
+    console.error('Error fetching models:', error);
+    res.status(500).send('Internal Server Error');
+  }
+};
