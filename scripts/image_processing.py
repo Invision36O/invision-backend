@@ -11,7 +11,9 @@ pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 logging.basicConfig(filename='image_processing.log', level=logging.DEBUG)
 
 # Initialize variables for room positioning
-current_x, current_z = 0, 0
+current_x, current_z, total_width_of_previous_row, previous_room_depth = 0, 0, 0, 0
+last_row_y = -1
+first_room_skipped = False
 
 def enhance_image(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -27,33 +29,32 @@ def parse_dimensions(dimensions_str):
     width, depth = map(int, dimensions_str.lower().replace('x', ' ').split())
     return {"width": width, "depth": depth, "height": 1.2}
 
-def calculate_relative_position(w, h):
-    global current_x, current_z
+def calculate_relative_position(x, y, w, h):
+    global current_x, current_z, total_width_of_previous_row, previous_room_depth, last_row_y,  first_room_skipped
 
-    # If it's the first room, set its position to (0, 0)
-    if current_x == 0 and current_z == 0:
-        position = {"x": 0, "z": 0}
+    if not first_room_skipped:
+        # Skip the first room and don't update any positions
+        first_room_skipped = True
+        return None
+
+    # Check if we are on a new row by comparing the y coordinate
+    if y > last_row_y + previous_room_depth:
+        # We are on a new row
+        last_row_y = y
+        current_x = total_width_of_previous_row  # Set the x position to the total width of the previous row
+        current_z = 0  # Reset z position for a new row
+        total_width_of_previous_row += w  # Update the total width of the previous row
     else:
-        # If it's to the right of another room, set x position accordingly
-        if current_x != 0:
-            position = {"x": current_x + w, "z": current_z}
-        # If it's below another room, set z position accordingly
-        else:
-            position = {"x": current_x, "z": current_z + h}
+        # We are in the same row
+        current_z += previous_room_depth  # Increase z position by the depth of the previous room
 
-    # Update current position for the next room
-    current_x, current_z = position["x"], position["z"]
+    previous_room_depth = h  # Update the depth of the previous room for the next iteration
 
-    return position
-
-def update_position_for_new_row(depth):
-    global current_x, current_z
-    current_x = 0  # Reset x at the start of a new row
-    current_z += depth  # Update z to the end of the last row
+    return {"x": current_x, "z": current_z}
 
 def image_processing(image, input_image_filename):
-    global current_x, current_z
-    current_x, current_z = 0, 0  # Reset for each new image
+    global current_x, current_z, total_width_of_previous_row, previous_room_depth, last_row_y
+    current_x, current_z, total_width_of_previous_row, previous_room_depth, last_row_y = 0, 0, 0, 0, 0
 
     enhanced = enhance_image(image)
     contours, _ = cv2.findContours(enhanced, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -78,20 +79,21 @@ def image_processing(image, input_image_filename):
             logging.info(f"Room detected: {room_name}")
 
             parsed_dimensions = parse_dimensions(dimensions_str)
-            position = calculate_relative_position(parsed_dimensions["width"], parsed_dimensions["depth"])
+            position = calculate_relative_position(x, y, parsed_dimensions["width"], parsed_dimensions["depth"])
 
-            room_data[room_name] = {
-                "dimensions": parsed_dimensions,
-                "position": position
-            }
+            if position:  # Only add the room if a position was calculated
+                room_data[room_name] = {
+                    "dimensions": parsed_dimensions,
+                    "position": position
+                }
 
     # Sort the rooms based on their positions
-    sorted_rooms = sorted(room_data.items(), key=lambda x: (x[1]["position"]["z"], x[1]["position"]["x"]))
+    sorted_rooms = sorted(room_data.items(), key=lambda x: (x[1]["position"]["x"], x[1]["position"]["z"]))
 
     # Create a new ordered dictionary with the sorted rooms
     ordered_room_data = dict(sorted_rooms)
 
-    json_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//spaceData', f"{os.path.splitext(input_image_filename)[0]}.json")
+    json_path = os.path.join('C://Users//hp//Desktop//Fyp+//invision-backend//public//spaceData', f"{os.path.splitext(input_image_filename)[0]}_room_data.json")
 
     with open(json_path, "w") as json_file:
         json.dump({"rooms": ordered_room_data}, json_file, indent=4)
@@ -105,15 +107,15 @@ if __name__ == "__main__":
             raise ValueError("Usage: python image_processing.py <input_image_filename>")
         input_image_filename = sys.argv[1]
 
-        input_image_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//uploadedImages', input_image_filename)
+        input_image_path = os.path.join('C://Users//hp//Desktop//Fyp+//invision-backend//public//uploadedImages', input_image_filename)
 
         if not os.path.isfile(input_image_path):
             raise FileNotFoundError(f"Image not found: {input_image_path}")
         image = cv2.imread(input_image_path)
         processed_image = image_processing(image, input_image_filename)
-        output_filename = f"{input_image_filename}"
+        output_filename = f"processed_{input_image_filename}"
 
-        output_path = os.path.join('C://Users//engss//Desktop//FYP//invision-backend//public//processedImages', output_filename)
+        output_path = os.path.join('C://Users//hp//Desktop//Fyp+//invision-backend//public//processedImages', output_filename)
 
         cv2.imwrite(output_path, processed_image)
         logging.info(f"Processed image saved at {output_path}")

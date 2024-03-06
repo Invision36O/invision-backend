@@ -9,6 +9,9 @@ const port = process.env.port || 3001;
 const bodyParser = require('body-parser')
 const cors = require('cors');
 app.use(cors( { origin: '*' , } ));
+app.use(cors( { origin: 'http://localhost:3000/' , } ));
+app.use(cors());
+
 
 const userRoute = require('./routes/users.routes')
 const mapRoutes = require('./routes/maps.routes')
@@ -33,6 +36,7 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
+app.use(cors( { origin: '*' , } ));
 
 mongoose.connect(process.env.mongo, {
     useNewUrlParser: true,
