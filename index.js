@@ -17,6 +17,7 @@ const userRoute = require('./routes/users.routes')
 const mapRoutes = require('./routes/maps.routes')
 const modelRoutes = require('./routes/models.routes')
 const spaceRoutes = require('./routes/space.routes')
+const photoRoutes = require('./routes/photo.routes')
 
 app.set("view engine", "ejs");
 app.use(express.json());
@@ -24,8 +25,10 @@ app.use(bodyParser.json())
 app.use(express.urlencoded({extended: true}));
 app.use('/user',userRoute);
 app.use('/map', mapRoutes);
-app.use('/model',modelRoutes);
+app.use('/model', modelRoutes);
 app.use('/space', spaceRoutes);
+app.use('/photo', photoRoutes);
+
 app.use('/uploads', express.static('uploads'));
 app.use('/public',express.static('public'))
 app.use('/uploadedImages', express.static(path.join('public', 'uploadedImages')));
