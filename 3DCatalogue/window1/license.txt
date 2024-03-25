@@ -1,0 +1,11 @@
+Model Information:
+* title:	PVC still window with sill
+* source:	https://sketchfab.com/3d-models/pvc-still-window-with-sill-40db0ab7856c49e09b3d3dce4e99f284
+* author:	Biser Borislavov (https://sketchfab.com/biserborislawow)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "PVC still window with sill" (https://sketchfab.com/3d-models/pvc-still-window-with-sill-40db0ab7856c49e09b3d3dce4e99f284) by Biser Borislavov (https://sketchfab.com/biserborislawow) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
