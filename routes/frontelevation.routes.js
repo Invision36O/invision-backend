@@ -22,8 +22,8 @@ router.get('/getElevations', frontElevationController.getAllModels);
 router.get('/filterElevations', frontElevationController.getModelByStyleAndColor);
 router.post('/uploadElevation', upload.single('model'), frontElevationController.uploadModel);
 router.post('/uploadfolderElevation', upload.single('folder'), frontElevationController.uploadFolder);
-
-
+router.get('/colors', frontElevationController.getDistinctColors);
+router.get('/styles', frontElevationController.getAllUniqueStyles);
 
 
 module.exports = router;

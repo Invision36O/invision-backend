@@ -42,6 +42,7 @@ exports.uploadModel = upload.single('model'), async (req, res) => {
     name: req.body.name,
     style: req.body.style,
     colorScheme: req.body.colorScheme,
+    imagePath:req.body.imagePath,
     modelPath: modelURL,
   });
 
@@ -118,3 +119,25 @@ exports.getModelByStyleAndColor = async (req, res) => {
     res.status(500).send(error.message);
   }
 };
+
+exports.getDistinctColors = async (req, res) => {
+  try {
+    // Use 'distinct' to get all unique colorScheme values from the FrontElevation collection
+    const distinctColors = await FrontElevation.distinct("colorScheme");
+    res.json(distinctColors);
+  } catch (error) {
+    console.error("Error retrieving distinct colors:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+exports.getAllUniqueStyles = async (req, res) => {
+  try {
+    const uniqueStyles = await FrontElevation.distinct("style");
+    res.json({ styles: uniqueStyles });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+};
+

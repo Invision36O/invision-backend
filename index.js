@@ -34,11 +34,14 @@ app.use('/frontelevation',frontElevationRoutes);
 app.use('/objects3D',ObjectRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/public',express.static('public'))
-app.use('/modeluploads', express.static(path.join(__dirname, 'modeluploads')));
+// app.use('/modeluploads', express.static(path.join(__dirname, 'modeluploads')));
 app.use('/uploadedImages', express.static(path.join('public', 'uploadedImages')));
 app.use('/processedImages', express.static(path.join('public', 'processedImages')));
 app.use('/models', express.static(path.join(__dirname, 'public/models')));
 app.use('/3DCatalogue', express.static('3DCatalogue'));
+// app.use('/modeluploads', express.static('modeluploads'));
+app.use('/modeluploads', express.static('modeluploads'));
+
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
